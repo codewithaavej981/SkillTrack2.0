@@ -3,6 +3,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
+const skillRoutes = require('./routes/skillRoutes');
+const goalRoutes = require('./routes/goalRoutes');
+const errorHandler = require('./middleware/errorMiddleware');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,6 +20,12 @@ app.get('/api/health', (req, res) => {
     message: 'SkillTrack 2.0 API is running',
   });
 });
+
+app.use('/api/auth', authRoutes);
+app.use('/api/skills', skillRoutes);
+app.use('/api/goals', goalRoutes);
+
+app.use(errorHandler);
 
 const startServer = async () => {
   try {
