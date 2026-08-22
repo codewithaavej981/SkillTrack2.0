@@ -84,6 +84,7 @@ function Shell() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
   return (
     <div className="shell">
       <aside className={`side ${open ? "open" : ""}`}>
@@ -115,14 +116,31 @@ function Shell() {
             <button>View plans</button>
           </div>
           <NavLink to="/profile" className="mini-profile">
-            <i>MC</i>
+            <i>
+              {user?.name
+                ? user.name
+                    .split(" ")
+                    .map((word) => word[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()
+                : "U"}
+            </i>
+
             <span>
-              <b>Maria Chen</b>
-              <small>Product designer</small>
+              <b>{user?.name || "User"}</b>
+              <small>{user?.role || "SkillTrack member"}</small>
             </span>
+
             <ChevronDown />
           </NavLink>
-          <button className="logout" onClick={() => navigate("/login")}>
+          <button
+            className="logout"
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+          >
             <LogOut />
             Log out
           </button>
@@ -146,7 +164,14 @@ function Shell() {
               <Bell />
             </Button>
             <NavLink to="/profile" className="avatar">
-              MC
+              {user?.name
+                ? user.name
+                    .split(" ")
+                    .map((word) => word[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()
+                : "U"}
             </NavLink>
           </div>
         </header>

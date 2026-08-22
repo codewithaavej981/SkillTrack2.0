@@ -28,7 +28,9 @@ export default function Profile() {
   const [message, setMessage] = useState("");
 
   const fileInputRef = useRef(null);
-  const [photo, setPhoto] = useState(null);
+ const [photo, setPhoto] = useState(
+  () => localStorage.getItem("profilePhoto") || null
+);
 
   useEffect(() => {
     if (!user) return;
@@ -42,13 +44,21 @@ export default function Profile() {
   }, [user]);
 
   const handlePhotoChange = (event) => {
-    const file = event.target.files?.[0];
+  const file = event.target.files?.[0];
 
-    if (!file) return;
+  if (!file) return;
 
-    setPhoto(URL.createObjectURL(file));
+  const reader = new FileReader();
+
+  reader.onloadend = () => {
+    const imageData = reader.result;
+
+    setPhoto(imageData);
+    localStorage.setItem("profilePhoto", imageData);
   };
 
+  reader.readAsDataURL(file);
+};
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -171,6 +181,7 @@ export default function Profile() {
                     required
                   />
                 </label>
+
 
                 <label>
                   Email address
