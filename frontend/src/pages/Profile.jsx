@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   ChevronRight,
   LockKeyhole,
@@ -10,10 +10,36 @@ import {
 import Button from "../components/Button";
 import PageHead from "../components/PageHead";
 import CardHead from "../components/CardHead";
+import Notice from "../components/Notice";
+import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
 
 export default function Profile() {
+  const { user } = useAuth();
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    role: "",
+    location: "",
+  });
+
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
   const fileInputRef = useRef(null);
   const [photo, setPhoto] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    setForm({
+      name: user.name || "",
+      email: user.email || "",
+      role: user.role || "",
+      location: user.location || "",
+    });
+  }, [user]);
 
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
@@ -21,6 +47,34 @@ export default function Profile() {
     if (!file) return;
 
     setPhoto(URL.createObjectURL(file));
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSave = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setMessage("");
+
+    try {
+      await api.put("/auth/profile", form);
+
+      setMessage("Profile updated successfully.");
+    } catch (error) {
+      setMessage(
+        error.response?.data?.message ||
+          "Failed to update profile.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -35,12 +89,28 @@ export default function Profile() {
         <article className="card profile">
           <div className="profile-banner">
             {photo ? (
-              <img src={photo} alt="Profile" className="profile-photo" />
+              <img
+                src={photo}
+                alt="Profile"
+                className="profile-photo"
+              />
             ) : (
-              <i>MC</i>
+              <i>
+                {form.name
+                  ? form.name
+                      .split(" ")
+                      .map((word) => word[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()
+                  : "U"}
+              </i>
             )}
 
-            <Button onClick={() => fileInputRef.current?.click()}>
+            <Button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <UserRound />
               Change photo
             </Button>
@@ -54,18 +124,31 @@ export default function Profile() {
             />
           </div>
 
-          <h2>Maria Chen</h2>
-          <p>Product designer · San Francisco</p>
+          <h2>{form.name || "User"}</h2>
+
+          <p>
+            {form.role || "Add your role"}
+            {form.location && ` · ${form.location}`}
+          </p>
 
           <div>
             <span>
               <Mail />
-              maria.chen@example.com
+              {form.email || "No email"}
             </span>
 
             <span>
               <UserRound />
-              Member since March 2024
+              Member since{" "}
+              {user?.createdAt
+                ? new Date(user.createdAt).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "long",
+                      year: "numeric",
+                    },
+                  )
+                : "recently"}
             </span>
           </div>
         </article>
@@ -77,21 +160,56 @@ export default function Profile() {
               text="Update the details shown in your workspace"
             />
 
-            <div className="inputs">
-              {[
-                ["Full name", "Maria Chen"],
-                ["Email address", "maria.chen@example.com"],
-                ["Role", "Product designer"],
-                ["Location", "San Francisco, CA"],
-              ].map(([label, value]) => (
-                <label key={label}>
-                  {label}
-                  <input defaultValue={value} />
+            <form onSubmit={handleSave}>
+              <div className="inputs">
+                <label>
+                  Full name
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                  />
                 </label>
-              ))}
-            </div>
 
-            <Button>Save changes</Button>
+                <label>
+                  Email address
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </label>
+
+                <label>
+                  Role
+                  <input
+                    name="role"
+                    value={form.role}
+                    onChange={handleChange}
+                    placeholder="e.g. Frontend Developer"
+                  />
+                </label>
+
+                <label>
+                  Location
+                  <input
+                    name="location"
+                    value={form.location}
+                    onChange={handleChange}
+                    placeholder="e.g. Solapur, Maharashtra"
+                  />
+                </label>
+              </div>
+
+              <Button type="submit" disabled={saving}>
+                {saving ? "Saving..." : "Save changes"}
+              </Button>
+
+              {message && <Notice message={message} />}
+            </form>
           </article>
 
           <article className="card">
@@ -108,6 +226,7 @@ export default function Profile() {
               <label className="toggle" key={item}>
                 <span>
                   {item}
+
                   <small>
                     {index === 0
                       ? "A digest every Monday"
