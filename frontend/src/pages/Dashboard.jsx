@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { chartData } from "../data/demoData";
 import {
   Area,
   AreaChart,
@@ -19,11 +21,43 @@ import {
 
 import Progress from "../components/Progress";
 import PageHead from "../components/PageHead";
-import { chartData, goals, skills } from "../data/demoData";
+import { getSkills } from "../services/skillService";
+import { getGoals } from "../services/goalService";
 import Stats from "../components/Stats";
 import CardHead from "../components/CardHead";
 
 export default function Dashboard() {
+  const [skillList, setSkillList] = useState([]);
+  const [goalList, setGoalList] = useState([]);
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        const [skills, goals] = await Promise.all([getSkills(), getGoals()]);
+
+        setSkillList(skills || []);
+        setGoalList(goals || []);
+      } catch (error) {
+        console.error("Failed to load dashboard:", error);
+      }
+    };
+
+    loadDashboard();
+  }, []);
+
+  const activeSkills = skillList.length;
+
+  const activeGoals = goalList.filter((goal) => !goal.completed).length;
+
+  const completedGoals = goalList.filter((goal) => goal.completed).length;
+
+  const goalProgress = goalList.length
+    ? Math.round(
+        goalList.reduce((total, goal) => total + (goal.progress || 0), 0) /
+          goalList.length,
+      )
+    : 0;
+
   return (
     <>
       <PageHead
@@ -46,24 +80,50 @@ export default function Dashboard() {
 
           <p className="eyebrow">YOUR LEARNING MOMENTUM</p>
 
-          <h2>71% of your quarterly growth plan</h2>
+          <h2>{goalProgress}% of your quarterly growth plan</h2>
 
-          <p>
-            You’re 6% ahead of where you planned to be. Keep the rhythm going.
-          </p>
+          <p>Keep building your skills and moving toward your goals.</p>
 
-          <Progress value={71} color="#fff" />
+          <Progress value={goalProgress} color="#fff" />
         </div>
 
         <div className="ring">
           <b>
-            71<small>%</small>
+            {goalProgress}
+            <small>%</small>
           </b>
           <span>overall progress</span>
         </div>
       </section>
 
-      <Stats />
+      <section className="stats">
+        <div>
+          <span className="stat purple">
+            <BookOpen />
+          </span>
+          <b>{activeSkills}</b>
+          <p>Active skills</p>
+          <small>From your skill library</small>
+        </div>
+
+        <div>
+          <span className="stat orange">
+            <Target />
+          </span>
+          <b>{activeGoals}</b>
+          <p>Goals in progress</p>
+          <small>{completedGoals} completed</small>
+        </div>
+
+        <div>
+          <span className="stat green">
+            <BookOpen />
+          </span>
+          <b>—</b>
+          <p>Learning time</p>
+          <small>Coming with Learning module</small>
+        </div>
+      </section>
 
       <section className="grid two">
         <article className="card chart">
@@ -76,34 +136,16 @@ export default function Dashboard() {
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="fill" x1="0" x2="0" y1="0" y2="1">
-                  <stop
-                    stopColor="#6956e7"
-                    stopOpacity=".26"
-                  />
-                  <stop
-                    offset="1"
-                    stopColor="#6956e7"
-                    stopOpacity="0"
-                  />
+                  <stop stopColor="#6956e7" stopOpacity=".26" />
+                  <stop offset="1" stopColor="#6956e7" stopOpacity="0" />
                 </linearGradient>
               </defs>
 
-              <CartesianGrid
-                vertical={false}
-                stroke="#ecebf2"
-              />
+              <CartesianGrid vertical={false} stroke="#ecebf2" />
 
-              <XAxis
-                dataKey="month"
-                axisLine={false}
-                tickLine={false}
-              />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} />
 
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                width={27}
-              />
+              <YAxis axisLine={false} tickLine={false} width={27} />
 
               <Tooltip />
 
@@ -125,20 +167,26 @@ export default function Dashboard() {
             link="/goals"
           />
 
-          {goals.slice(0, 2).map((g) => (
-            <div className="compact" key={g.id}>
-              <div>
-                <b>{g.title}</b>
-                <strong>{g.progress}%</strong>
+          {goalList
+            .filter((g) => !g.completed)
+            .slice(0, 2)
+            .map((g) => (
+              <div className="compact" key={g._id}>
+                <div>
+                  <b>{g.title}</b>
+                  <strong>{g.progress}%</strong>
+                </div>
+
+                <Progress value={g.progress || 0} />
+
+                <small>
+                  <CalendarDays /> Due{" "}
+                  {g.deadline
+                    ? new Date(g.deadline).toLocaleDateString()
+                    : "No deadline"}
+                </small>
               </div>
-
-              <Progress value={g.progress} />
-
-              <small>
-                <CalendarDays /> Due {g.due}
-              </small>
-            </div>
-          ))}
+            ))}
         </article>
       </section>
 
@@ -150,8 +198,8 @@ export default function Dashboard() {
             link="/skills"
           />
 
-          {skills.slice(0, 3).map((s) => (
-            <div className="skill-line" key={s.id}>
+          {skillList.slice(0, 3).map((s) => (
+            <div className="skill-line" key={s._id}>
               <i style={{ background: s.color }} />
 
               <div>
@@ -163,10 +211,7 @@ export default function Dashboard() {
 
               <aside>
                 <b>{s.progress}%</b>
-                <Progress
-                  value={s.progress}
-                  color={s.color}
-                />
+                <Progress value={s.progress} color={s.color} />
               </aside>
             </div>
           ))}
