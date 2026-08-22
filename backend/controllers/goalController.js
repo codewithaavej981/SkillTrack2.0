@@ -6,19 +6,19 @@ exports.getGoals = async (req, res, next) => {
 
 exports.createGoal = async (req, res, next) => {
   try {
-    const { title, description, deadline, completed } = req.body;
+    const { title, description, category, progress, deadline, completed } = req.body;
     if (!title) return res.status(400).json({ success: false, message: 'Title is required' });
-    const goal = await Goal.create({ user: req.user._id, title, description, deadline, completed });
+    const goal = await Goal.create({ user: req.user._id, title, description, category, progress, deadline, completed });
     res.status(201).json({ success: true, goal });
   } catch (error) { next(error); }
 };
 
 exports.updateGoal = async (req, res, next) => {
   try {
-    const { title, description, deadline, completed } = req.body;
+        const { title, description, category, progress, deadline, completed } = req.body;
     const goal = await Goal.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
-      { title, description, deadline, completed },
+      { title, description, category, progress, deadline, completed },
       { new: true, runValidators: true }
     );
     if (!goal) return res.status(404).json({ success: false, message: 'Goal not found' });
