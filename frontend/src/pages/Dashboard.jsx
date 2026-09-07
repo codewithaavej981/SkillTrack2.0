@@ -25,8 +25,9 @@ import { getSkills } from "../services/skillService";
 import { getGoals } from "../services/goalService";
 import Stats from "../components/Stats";
 import CardHead from "../components/CardHead";
-
+import { useAuth } from "../context/AuthContext";
 export default function Dashboard() {
+  const { user } = useAuth();
   const [skillList, setSkillList] = useState([]);
   const [goalList, setGoalList] = useState([]);
 
@@ -62,7 +63,7 @@ export default function Dashboard() {
     <>
       <PageHead
         label="MONDAY, JUNE 17"
-        title="Good morning, Maria."
+        title={`Welcome Back, ${user?.name?.split(" ")[0] || "there"}.`}
         text="Here’s a clear view of the progress you’re making."
         action={
           <Link to="/skills" className="button">

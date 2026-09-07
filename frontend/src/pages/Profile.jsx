@@ -15,7 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, refreshUser} = useAuth();
 
   const [form, setForm] = useState({
     name: "",
@@ -75,7 +75,7 @@ export default function Profile() {
 
     try {
       await api.put("/auth/profile", form);
-
+      await refreshUser();
       setMessage("Profile updated successfully.");
     } catch (error) {
       setMessage(

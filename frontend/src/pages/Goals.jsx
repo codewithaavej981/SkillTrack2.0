@@ -111,7 +111,7 @@ export default function Goals() {
         title="Make the next milestone real."
         text="Connect daily progress to the outcomes you care about."
         action={
-          <Button onClick={openAddForm}>
+          <Button className="btn-add" onClick={openAddForm}>
             <Plus />
             Add goal
           </Button>

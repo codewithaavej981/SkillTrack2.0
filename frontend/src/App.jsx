@@ -68,6 +68,8 @@ import {
   Target,
   Trash2,
   UserRound,
+  Sun,
+  Moon,
   X,
 } from "lucide-react";
 
@@ -81,6 +83,15 @@ import {
 } from "./data/demoData";
 
 function Shell() {
+  
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark",
+  );
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = darkMode ? "dark" : "light";
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -152,17 +163,30 @@ function Shell() {
           <Button className="hamburger" onClick={() => setOpen(true)}>
             <Menu />
           </Button>
+
           <span className="crumb">
             Workspace <em>/</em> {names[location.pathname] || "Dashboard"}
           </span>
+
           <div>
-            <Button className="new">
+            {/* Dark / Light toggle */}
+            <Button
+              className="theme-toggle"
+              onClick={() => setDarkMode((prev) => !prev)}
+              title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {darkMode ? <Sun /> : <Moon />}
+            </Button>
+
+            <Button className="btn-add">
               <Plus />
               New goal
             </Button>
+
             <Button className="round">
               <Bell />
             </Button>
+
             <NavLink to="/profile" className="avatar">
               {user?.name
                 ? user.name

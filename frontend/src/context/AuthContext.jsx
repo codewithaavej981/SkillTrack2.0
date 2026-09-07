@@ -29,6 +29,18 @@ export function AuthProvider({ children }) {
       });
   }, []);
 
+
+  const refreshUser = async () => {
+  try {
+    const response = await api.get("/auth/me");
+    setUser(response.data.user);
+    return response.data.user;
+  } catch (error) {
+    console.error("Failed to refresh user:", error);
+    return null;
+  }
+};
+
   const login = async (email, password) => {
     const response = await api.post("/auth/login", {
       email,
@@ -67,6 +79,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        refreshUser,
         isAuthenticated: !!user,
       }}
     >

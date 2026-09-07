@@ -179,7 +179,7 @@ export default function Skills() {
         title="Build your edge."
         text="Track the capabilities that move your work and career forward."
         action={
-          <Button onClick={openAddForm}>
+          <Button className="btn-add" onClick={openAddForm}>
             <Plus />
             Add skill
           </Button>
