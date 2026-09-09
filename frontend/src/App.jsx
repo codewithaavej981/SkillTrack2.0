@@ -12,6 +12,12 @@ import PageHead from "./components/PageHead";
 import Notice from "./components/Notice";
 import { useAuth } from "./context/AuthContext";
 import {
+  getLearningResources,
+  createLearningResource,
+  updateLearningResource,
+} from "./services/learningService";
+// import { getLearningResources } from "./services/learningService";
+import {
   getSkills,
   createSkill,
   updateSkill,
@@ -83,7 +89,6 @@ import {
 } from "./data/demoData";
 
 function Shell() {
-  
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") === "dark",
   );
@@ -178,9 +183,9 @@ function Shell() {
               {darkMode ? <Sun /> : <Moon />}
             </Button>
 
-            <Button className="btn-add">
+            <Button className="btn-add" onClick={() => navigate("/goals?add=true")}>
               <Plus />
-              New goal
+              Add goal
             </Button>
 
             <Button className="round">
@@ -220,13 +225,62 @@ function Shell() {
 }
 
 function Learning() {
+  const [resources, setResources] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    const loadResources = async () => {
+      try {
+        const data = await getLearningResources();
+        setResources(data);
+      } catch (error) {
+        console.error("Failed to load learning resources:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadResources();
+  }, []);
+
   const list = resources.filter(
     (x) =>
       (filter === "All" || x.category === filter) &&
       x.title.toLowerCase().includes(search.toLowerCase()),
   );
+
+  const handleStartLearning = async (resource) => {
+    try {
+      const updated = await updateLearningResource(resource._id, {
+        progress: 10,
+      });
+
+      setResources((prev) =>
+        prev.map((item) => (item._id === updated._id ? updated : item)),
+      );
+    } catch (error) {
+      console.error("Failed to update learning progress:", error);
+    }
+  };
+
+  const handleComplete = async (resource) => {
+    try {
+      const updated = await updateLearningResource(resource._id, {
+        progress: 100,
+        completed: true,
+      });
+
+      setResources((prev) =>
+        prev.map((item) => (item._id === updated._id ? updated : item)),
+      );
+    } catch (error) {
+      console.error("Failed to complete resource:", error);
+    }
+  };
+
   return (
     <>
       <PageHead
@@ -234,73 +288,143 @@ function Learning() {
         title="Keep your curiosity moving."
         text="Curated resources to support the skills you’re building."
       />
-      <section className="continue">
-        <span>
-          <BookOpen />
-        </span>
-        <div>
-          <p className="eyebrow">CONTINUE LEARNING</p>
-          <h2>{resources[0].title}</h2>
-          <p>
-            {resources[0].source} · {resources[0].time} remaining
-          </p>
-          <Progress value={64} />
-        </div>
-        <Button>
-          Resume <ChevronRight />
-        </Button>
-      </section>
-      <div className="toolbar learning-tools">
-        <label className="search">
-          <Search />
-          <input
-            placeholder="Search learning resources"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </label>
-        <div className="pills">
-          {["All", "Design", "Development", "Analytics", "Leadership"].map(
-            (x) => (
-              <button
-                className={filter === x ? "on" : ""}
-                onClick={() => setFilter(x)}
-                key={x}
-              >
-                {x}
-              </button>
-            ),
+
+      <Button onClick={() => setShowForm((prev) => !prev)}>
+        <Plus />
+        Add resource
+      </Button>
+
+      {showForm && (
+        <form
+          className="card"
+          onSubmit={async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+
+            try {
+              const newResource = await createLearningResource({
+                title: formData.get("title"),
+                source: formData.get("source"),
+                category: formData.get("category"),
+                url: formData.get("url"),
+              });
+
+              setResources((prev) => [newResource, ...prev]);
+              setShowForm(false);
+              e.target.reset();
+            } catch (error) {
+              console.error("Failed to create resource:", error);
+            }
+          }}
+        >
+          <input name="title" placeholder="Resource title" required />
+
+          <input name="source" placeholder="Source" required />
+
+          <select name="category" defaultValue="Development">
+            <option>Design</option>
+            <option>Development</option>
+            <option>Analytics</option>
+            <option>Leadership</option>
+          </select>
+
+          <input name="url" placeholder="Resource URL" />
+
+          <Button type="submit">Add resource</Button>
+        </form>
+      )}
+
+      {loading ? (
+        <p>Loading learning resources...</p>
+      ) : (
+        <>
+          {resources.length > 0 && (
+            <section className="continue">
+              <span>
+                <BookOpen />
+              </span>
+
+              <div>
+                <p className="eyebrow">CONTINUE LEARNING</p>
+                <h2>{resources[0].title}</h2>
+                <p>{resources[0].source}</p>
+                <Progress value={resources[0].progress} />
+              </div>
+
+              <Button onClick={() => handleStartLearning(resources[0])}>
+                Resume <ChevronRight />
+              </Button>
+            </section>
           )}
-        </div>
-      </div>
-      <section className="resource-grid">
-        {list.map((r) => (
-          <article className="resource" key={r.title}>
-            <div className={`resource-art ${r.tint}`}>
-              <BookOpen />
-              <span>{r.category}</span>
-            </div>
-            <div>
-              <small>{r.source}</small>
-              <h3>{r.title}</h3>
-              <p>
-                <Clock3 />
-                {r.time}
-              </p>
-              {r.progress ? (
-                <>
-                  <Progress value={r.progress} />
-                  <small>{r.progress}% complete</small>
-                </>
-              ) : (
-                <button>
-                  Start learning <ChevronRight />
-                </button>
+
+          <div className="toolbar learning-tools">
+            <label className="search">
+              <Search />
+              <input
+                placeholder="Search learning resources"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </label>
+
+            <div className="pills">
+              {["All", "Design", "Development", "Analytics", "Leadership"].map(
+                (x) => (
+                  <button
+                    className={filter === x ? "on" : ""}
+                    onClick={() => setFilter(x)}
+                    key={x}
+                  >
+                    {x}
+                  </button>
+                ),
               )}
             </div>
-          </article>
-        ))}
-      </section>
+          </div>
+
+          <section className="resource-grid">
+            {list.length > 0 ? (
+              list.map((r) => (
+                <article className="resource" key={r._id}>
+                  <div className="resource-art">
+                    <BookOpen />
+                    <span>{r.category}</span>
+                  </div>
+
+                  <div>
+                    <small>{r.source}</small>
+                    <h3>{r.title}</h3>
+
+                    {r.progress > 0 && (
+                      <>
+                        <Progress value={r.progress} />
+                        <small>{r.progress}% complete</small>
+                      </>
+                    )}
+
+                    {r.progress === 0 && (
+                      <button onClick={() => handleStartLearning(r)}>
+                        Start learning <ChevronRight />
+                      </button>
+                    )}
+
+                    {r.progress > 0 && r.progress < 100 && (
+                      <button onClick={() => handleComplete(r)}>
+                        Mark complete <Check />
+                      </button>
+                    )}
+
+                    {r.completed && <small>✓ Completed</small>}
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p>No learning resources found.</p>
+            )}
+          </section>
+        </>
+      )}
     </>
   );
 }

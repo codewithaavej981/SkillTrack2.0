@@ -6,6 +6,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const skillRoutes = require('./routes/skillRoutes');
 const goalRoutes = require('./routes/goalRoutes');
+const learningRoutes = require("./routes/learningRoutes");
 const errorHandler = require('./middleware/errorMiddleware');
 
 const app = express();
@@ -24,6 +25,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/goals', goalRoutes);
+app.use("/api/learning", learningRoutes);
 
 app.use(errorHandler);
 

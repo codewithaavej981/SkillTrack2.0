@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import Progress from "../components/Progress";
 import Button from "../components/Button";
@@ -16,10 +17,13 @@ import {
   deleteGoal,
 } from "../services/goalService";
 export default function Goals() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [note, setNote] = useState("");
   const [goalList, setGoalList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+ const [showForm, setShowForm] = useState(
+  searchParams.get("add") === "true"
+);
   const [editingGoal, setEditingGoal] = useState(null);
 
   const [form, setForm] = useState({
@@ -34,12 +38,14 @@ export default function Goals() {
   const openAddForm = () => {
     setEditingGoal(null);
 
-    setForm({
-      title: "",
-      description: "",
-      deadline: "",
-      completed: false,
-    });
+   setForm({
+  title: "",
+  description: "",
+  category: "Web Development",
+  progress: 0,
+  deadline: "",
+  completed: false,
+});
 
     setNote("");
     setShowForm(true);
@@ -87,6 +93,15 @@ export default function Goals() {
           goalList.length,
       )
     : 0;
+
+
+    useEffect(() => {
+  if (searchParams.get("add") === "true") {
+    openAddForm();
+    setSearchParams({});
+  }
+}, []);
+
 
   useEffect(() => {
     const loadGoals = async () => {
