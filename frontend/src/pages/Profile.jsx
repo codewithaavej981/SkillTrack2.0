@@ -119,6 +119,7 @@ export default function Profile() {
 
             <Button
               type="button"
+              className="btn-add"
               onClick={() => fileInputRef.current?.click()}
             >
               <UserRound />

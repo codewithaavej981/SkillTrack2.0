@@ -1,4 +1,5 @@
 const express = require("express");
+const router = express.Router();
 
 const {
   getLearningResources,
@@ -7,7 +8,9 @@ const {
   deleteLearningResource,
 } = require("../controllers/learningController");
 
-const router = express.Router();
+const protect = require("../middleware/authMiddleware");
+
+router.use(protect);
 
 router.get("/", getLearningResources);
 router.post("/", createLearningResource);

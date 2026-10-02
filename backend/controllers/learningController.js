@@ -1,45 +1,73 @@
+
 const LearningResource = require("../models/LearningResource");
 
-// Get all learning resources
+// Get resources belonging to the logged-in user
 const getLearningResources = async (req, res) => {
-  const resources = await LearningResource.find().sort({ createdAt: -1 });
+  try {
+    const resources = await LearningResource.find({
+      user: req.user._id,
+    }).sort({ createdAt: -1 });
 
-  res.json(resources);
+    res.json(resources);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch resources" });
+  }
 };
 
-// Create learning resource
+// Create resource for the logged-in user
 const createLearningResource = async (req, res) => {
-  const resource = await LearningResource.create(req.body);
+  try {
+    const { title, source, category, url } = req.body;
 
-  res.status(201).json(resource);
+    const resource = await LearningResource.create({
+      title,
+      source,
+      category,
+      url,
+      user: req.user._id,
+    });
+
+    res.status(201).json(resource);
+  } catch (error) {
+    res.status(400).json({ message: "Failed to create resource" });
+  }
 };
 
-// Update learning resource
+// Update only the logged-in user's resource
 const updateLearningResource = async (req, res) => {
-  const resource = await LearningResource.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true, runValidators: true }
-  );
+  try {
+    const resource = await LearningResource.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      req.body,
+      { new: true, runValidators: true }
+    );
 
-  if (!resource) {
-    return res.status(404).json({ message: "Resource not found" });
+    if (!resource) {
+      return res.status(404).json({ message: "Resource not found" });
+    }
+
+    res.json(resource);
+  } catch (error) {
+    res.status(400).json({ message: "Failed to update resource" });
   }
-
-  res.json(resource);
 };
 
-// Delete learning resource
+// Delete only the logged-in user's resource
 const deleteLearningResource = async (req, res) => {
-  const resource = await LearningResource.findByIdAndDelete(
-    req.params.id
-  );
+  try {
+    const resource = await LearningResource.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id,
+    });
 
-  if (!resource) {
-    return res.status(404).json({ message: "Resource not found" });
+    if (!resource) {
+      return res.status(404).json({ message: "Resource not found" });
+    }
+
+    res.json({ message: "Resource deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ message: "Failed to delete resource" });
   }
-
-  res.json({ message: "Resource deleted successfully" });
 };
 
 module.exports = {

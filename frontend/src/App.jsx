@@ -105,7 +105,7 @@ function Shell() {
     <div className="shell">
       <aside className={`side ${open ? "open" : ""}`}>
         <div className="brand">
-          <span>S</span>SkillTrack{" "}
+          <span>S</span>SkillTracker 2.0{" "}
           <Button className="close" onClick={() => setOpen(false)}>
             <X />
           </Button>
@@ -223,21 +223,24 @@ function Shell() {
     </div>
   );
 }
-
 function Learning() {
   const [resources, setResources] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const loadResources = async () => {
       try {
+        setError("");
+
         const data = await getLearningResources();
-        setResources(data);
+        setResources(data || []);
       } catch (error) {
         console.error("Failed to load learning resources:", error);
+        setError("Failed to load learning resources.");
       } finally {
         setLoading(false);
       }
@@ -246,38 +249,93 @@ function Learning() {
     loadResources();
   }, []);
 
-  const list = resources.filter(
-    (x) =>
-      (filter === "All" || x.category === filter) &&
-      x.title.toLowerCase().includes(search.toLowerCase()),
+  const list = resources.filter((resource) => {
+    const progress = Number(resource.progress || 0);
+
+    const matchesFilter =
+      filter === "All" || resource.category === filter;
+
+    const searchText = search.toLowerCase();
+
+    const matchesSearch =
+      resource.title?.toLowerCase().includes(searchText) ||
+      resource.source?.toLowerCase().includes(searchText) ||
+      resource.category?.toLowerCase().includes(searchText);
+
+    return matchesFilter && matchesSearch;
+  });
+
+  // First resource that is not completed
+  const continueResource = resources.find(
+    (resource) => Number(resource.progress || 0) < 100
   );
+
+  const updateResourceInState = (updated) => {
+    setResources((prev) =>
+      prev.map((item) =>
+        item._id === updated._id ? updated : item
+      )
+    );
+  };
 
   const handleStartLearning = async (resource) => {
     try {
+      setError("");
+
+      // Don't reset existing progress
+      const currentProgress = Number(resource.progress || 0);
+
       const updated = await updateLearningResource(resource._id, {
-        progress: 10,
+        progress: currentProgress > 0 ? currentProgress : 10,
+        completed: false,
       });
 
-      setResources((prev) =>
-        prev.map((item) => (item._id === updated._id ? updated : item)),
-      );
+      updateResourceInState(updated);
     } catch (error) {
       console.error("Failed to update learning progress:", error);
+      setError("Failed to update learning progress.");
     }
   };
 
   const handleComplete = async (resource) => {
     try {
+      setError("");
+
       const updated = await updateLearningResource(resource._id, {
         progress: 100,
         completed: true,
       });
 
-      setResources((prev) =>
-        prev.map((item) => (item._id === updated._id ? updated : item)),
-      );
+      updateResourceInState(updated);
     } catch (error) {
       console.error("Failed to complete resource:", error);
+      setError("Failed to complete resource.");
+    }
+  };
+
+  const handleCreateResource = async (e) => {
+    e.preventDefault();
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      setError("");
+
+      const newResource = await createLearningResource({
+        title: formData.get("title"),
+        source: formData.get("source"),
+        category: formData.get("category"),
+        url: formData.get("url"),
+      });
+
+      setResources((prev) => [newResource, ...prev]);
+
+      form.reset();
+      setShowForm(false);
+    } catch (error) {
+      console.error("Failed to create resource:", error);
+      setError("Failed to create learning resource.");
     }
   };
 
@@ -289,49 +347,64 @@ function Learning() {
         text="Curated resources to support the skills you’re building."
       />
 
-      <Button onClick={() => setShowForm((prev) => !prev)}>
+      <Button className="btn-add" onClick={() => setShowForm((prev) => !prev)}>
         <Plus />
-        Add resource
+        {showForm ? "Close" : "Add resource"}
       </Button>
+
+      {error && (
+        <div className="notice">
+          {error}
+        </div>
+      )}
 
       {showForm && (
         <form
-          className="card"
-          onSubmit={async (e) => {
-            e.preventDefault();
-
-            const formData = new FormData(e.target);
-
-            try {
-              const newResource = await createLearningResource({
-                title: formData.get("title"),
-                source: formData.get("source"),
-                category: formData.get("category"),
-                url: formData.get("url"),
-              });
-
-              setResources((prev) => [newResource, ...prev]);
-              setShowForm(false);
-              e.target.reset();
-            } catch (error) {
-              console.error("Failed to create resource:", error);
-            }
-          }}
+          className="card learning-form"
+          onSubmit={handleCreateResource}
         >
-          <input name="title" placeholder="Resource title" required />
+          <h3>Add learning resource</h3>
 
-          <input name="source" placeholder="Source" required />
+          <input
+            name="title"
+            placeholder="Resource title"
+            required
+          />
 
-          <select name="category" defaultValue="Development">
+          <input
+            name="source"
+            placeholder="Source (YouTube, Udemy, etc.)"
+            required
+          />
+
+          <select
+            name="category"
+            defaultValue="Development"
+          >
             <option>Design</option>
             <option>Development</option>
             <option>Analytics</option>
             <option>Leadership</option>
           </select>
 
-          <input name="url" placeholder="Resource URL" />
+          <input
+            name="url"
+            type="url"
+            placeholder="https://example.com"
+          />
 
-          <Button type="submit">Add resource</Button>
+          <div>
+            <Button type="submit">
+              Add resource
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => setShowForm(false)}
+            >
+              Cancel
+            </Button>
+          </div>
         </form>
       )}
 
@@ -339,7 +412,7 @@ function Learning() {
         <p>Loading learning resources...</p>
       ) : (
         <>
-          {resources.length > 0 && (
+          {continueResource && (
             <section className="continue">
               <span>
                 <BookOpen />
@@ -347,12 +420,21 @@ function Learning() {
 
               <div>
                 <p className="eyebrow">CONTINUE LEARNING</p>
-                <h2>{resources[0].title}</h2>
-                <p>{resources[0].source}</p>
-                <Progress value={resources[0].progress} />
+
+                <h2>{continueResource.title}</h2>
+
+                <p>{continueResource.source}</p>
+
+                <Progress
+                  value={Number(continueResource.progress || 0)}
+                />
               </div>
 
-              <Button onClick={() => handleStartLearning(resources[0])}>
+              <Button
+                onClick={() =>
+                  handleStartLearning(continueResource)
+                }
+              >
                 Resume <ChevronRight />
               </Button>
             </section>
@@ -361,6 +443,7 @@ function Learning() {
           <div className="toolbar learning-tools">
             <label className="search">
               <Search />
+
               <input
                 placeholder="Search learning resources"
                 value={search}
@@ -369,56 +452,91 @@ function Learning() {
             </label>
 
             <div className="pills">
-              {["All", "Design", "Development", "Analytics", "Leadership"].map(
-                (x) => (
-                  <button
-                    className={filter === x ? "on" : ""}
-                    onClick={() => setFilter(x)}
-                    key={x}
-                  >
-                    {x}
-                  </button>
-                ),
-              )}
+              {[
+                "All",
+                "Design",
+                "Development",
+                "Analytics",
+                "Leadership",
+              ].map((category) => (
+                <button
+                  type="button"
+                  className={filter === category ? "on" : ""}
+                  onClick={() => setFilter(category)}
+                  key={category}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
           </div>
 
           <section className="resource-grid">
             {list.length > 0 ? (
-              list.map((r) => (
-                <article className="resource" key={r._id}>
-                  <div className="resource-art">
-                    <BookOpen />
-                    <span>{r.category}</span>
-                  </div>
+              list.map((resource) => {
+                const progress = Number(
+                  resource.progress || 0
+                );
 
-                  <div>
-                    <small>{r.source}</small>
-                    <h3>{r.title}</h3>
+                return (
+                  <article
+                    className="resource"
+                    key={resource._id}
+                  >
+                    <div className="resource-art">
+                      <BookOpen />
 
-                    {r.progress > 0 && (
-                      <>
-                        <Progress value={r.progress} />
-                        <small>{r.progress}% complete</small>
-                      </>
-                    )}
+                      <span>
+                        {resource.category}
+                      </span>
+                    </div>
 
-                    {r.progress === 0 && (
-                      <button onClick={() => handleStartLearning(r)}>
-                        Start learning <ChevronRight />
-                      </button>
-                    )}
+                    <div>
+                      <small>
+                        {resource.source}
+                      </small>
 
-                    {r.progress > 0 && r.progress < 100 && (
-                      <button onClick={() => handleComplete(r)}>
-                        Mark complete <Check />
-                      </button>
-                    )}
+                      <h3>{resource.title}</h3>
 
-                    {r.completed && <small>✓ Completed</small>}
-                  </div>
-                </article>
-              ))
+                      {progress > 0 && (
+                        <>
+                          <Progress value={progress} />
+
+                          <small>
+                            {progress}% complete
+                          </small>
+                        </>
+                      )}
+
+                      {progress === 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleStartLearning(resource)
+                          }
+                        >
+                          Start learning <ChevronRight />
+                        </button>
+                      )}
+
+                      {progress > 0 && progress < 100 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleComplete(resource)
+                          }
+                        >
+                          Mark complete <Check />
+                        </button>
+                      )}
+
+                      {resource.completed && (
+                        <small>✓ Completed</small>
+                      )}
+                    </div>
+                  </article>
+                );
+              })
             ) : (
               <p>No learning resources found.</p>
             )}
@@ -428,7 +546,6 @@ function Learning() {
     </>
   );
 }
-
 export default function App() {
   return (
     <Routes>
