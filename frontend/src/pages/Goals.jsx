@@ -29,7 +29,7 @@ export default function Goals() {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    category: "Web Developement",
+    category: "Web Development",
     progress: 0,
     deadline: "",
     completed: false,

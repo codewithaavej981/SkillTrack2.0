@@ -1,4 +1,13 @@
-export default function CardHead({ title, text, link }) {
+import { Link } from "react-router-dom";
+
+export default function CardHead({ title, text, link, linkText = "View all" }) {
+  const isExternal =
+    typeof link === "string" &&
+    (link.startsWith("http://") ||
+      link.startsWith("https://") ||
+      link.startsWith("//") ||
+      link.startsWith("mailto:"));
+
   return (
     <header className="card-head">
       <div>
@@ -6,7 +15,14 @@ export default function CardHead({ title, text, link }) {
         <p>{text}</p>
       </div>
 
-      {link && <a href={link}>View all</a>}
+      {link &&
+        (isExternal ? (
+          <a href={link} target="_blank" rel="noopener noreferrer">
+            {linkText}
+          </a>
+        ) : (
+          <Link to={link}>{linkText}</Link>
+        ))}
     </header>
   );
 }

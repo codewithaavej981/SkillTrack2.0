@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   CheckCircle2,
@@ -29,7 +29,7 @@ function Field({ icon, title, placeholder, type, value, onChange }) {
 }
 
 export default function Auth({ register }) {
-  const { login, register: registerUser } = useAuth();
+  const { user, loading: authLoading, login, register: registerUser } = useAuth();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -37,6 +37,12 @@ export default function Auth({ register }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

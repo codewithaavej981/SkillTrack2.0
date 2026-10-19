@@ -46,17 +46,12 @@ export default function Skills() {
     const savedDraft = localStorage.getItem("skillDraft");
 
     if (savedDraft) {
-      setForm(JSON.parse(savedDraft));
-      setShowForm(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    const savedDraft = localStorage.getItem("skillDraft");
-
-    if (savedDraft) {
-      setForm(JSON.parse(savedDraft));
-      setShowForm(true);
+      try {
+        setForm(JSON.parse(savedDraft));
+        setShowForm(true);
+      } catch (error) {
+        console.error("Failed to parse saved skill draft:", error);
+      }
     }
 
     setDraftLoaded(true);
@@ -67,7 +62,7 @@ export default function Skills() {
     localStorage.setItem("skillDraft", JSON.stringify(form));
   }, [form, draftLoaded]);
 
-  
+
   const loadSkills = async () => {
     try {
       setLoading(true);
