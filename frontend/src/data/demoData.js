@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Target,
   BarChart,
+  FileText,
 } from "lucide-react";
 
 export const skills = [
@@ -123,6 +124,7 @@ export const nav = [
   { to: "/goals", label: "Goals", icon: Target },
   { to: "/learning", label: "Learning", icon: BookOpen },
   { to: "/analytics", label: "Analytics", icon: BarChart },
+  { to: "/reports", label: "Reports", icon: FileText },
 ];
 export const names = {
   "/dashboard": "Dashboard",
@@ -130,5 +132,6 @@ export const names = {
   "/goals": "Goals",
   "/learning": "Learning library",
   "/analytics": "Analytics",
+  "/reports": "Reports",
   "/profile": "Profile",
 };

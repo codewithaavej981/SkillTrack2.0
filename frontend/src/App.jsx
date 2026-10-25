@@ -26,6 +26,7 @@ import Skills from "./pages/Skills";
 import Goals from "./pages/Goals";
 import Learning from "./pages/Learning";
 import Analytics from "./pages/Analytics";
+import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -205,6 +206,7 @@ export default function App() {
           <Route path="/goals" element={<Goals />} />
           <Route path="/learning" element={<Learning />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/reports" element={<Reports />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>
