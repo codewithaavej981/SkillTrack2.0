@@ -8,6 +8,7 @@ const skillRoutes = require('./routes/skillRoutes');
 const goalRoutes = require('./routes/goalRoutes');
 const learningRoutes = require("./routes/learningRoutes");
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 const errorHandler = require('./middleware/errorMiddleware');
 
 const app = express();
@@ -28,6 +29,14 @@ app.use('/api/skills', skillRoutes);
 app.use('/api/goals', goalRoutes);
 app.use("/api/learning", learningRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/reports', reportRoutes);
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Cannot ${req.method} ${req.originalUrl}`,
+  });
+});
 
 app.use(errorHandler);
 
