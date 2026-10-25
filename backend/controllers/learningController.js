@@ -1,4 +1,3 @@
-
 const LearningResource = require("../models/LearningResource");
 
 // Get resources belonging to the logged-in user
@@ -17,13 +16,21 @@ const getLearningResources = async (req, res) => {
 // Create resource for the logged-in user
 const createLearningResource = async (req, res) => {
   try {
-    const { title, source, category, url } = req.body;
+    const { title, source, category, url, progress, completed } = req.body;
 
     const resource = await LearningResource.create({
       title,
       source,
       category,
-      url,
+      url: url || "",
+      progress:
+        progress !== undefined
+          ? Math.min(100, Math.max(0, Number(progress) || 0))
+          : 0,
+      completed:
+        completed !== undefined
+          ? Boolean(completed)
+          : Number(progress) >= 100,
       user: req.user._id,
     });
 

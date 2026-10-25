@@ -30,6 +30,7 @@ import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Button from "./components/Button";
+import NotificationPanel from "./components/NotificationPanel";
 import { useAuth } from "./context/AuthContext";
 import { nav, names } from "./data/demoData";
 
@@ -44,6 +45,8 @@ function Shell() {
   }, [darkMode]);
 
   const [open, setOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [hasUnreadNotifs, setHasUnreadNotifs] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -135,9 +138,26 @@ function Shell() {
               Add goal
             </Button>
 
-            <Button className="round">
-              <Bell />
-            </Button>
+            <div className="notif-wrapper">
+              <Button
+                className={`round notif-btn ${notifOpen ? "active" : ""}`}
+                onClick={() => setNotifOpen((prev) => !prev)}
+                title="Notifications"
+                aria-label="Notifications"
+                aria-expanded={notifOpen}
+                aria-haspopup="dialog"
+              >
+                <Bell size={18} />
+                {hasUnreadNotifs && <span className="notif-badge" />}
+              </Button>
+
+              {notifOpen && (
+                <NotificationPanel
+                  onClose={() => setNotifOpen(false)}
+                  onUnreadChange={setHasUnreadNotifs}
+                />
+              )}
+            </div>
 
             <NavLink to="/profile" className="avatar">
               {user?.name
