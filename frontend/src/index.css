@@ -182,15 +182,15 @@ main {
 header {
   height: 69px;
   padding: 0 42px;
-  background: #ffffffdd;
-  border-bottom: 1px solid #ebeaf0;
+  background: var(--surface, #ffffff);
+  border-bottom: 1px solid var(--border, #ebeaf0);
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
-  z-index: 3;
-  backdrop-filter: blur(10px);
+  z-index: 30;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 header > div {
   display: flex;
@@ -402,23 +402,43 @@ header > div {
 .card-head {
   display: flex;
   justify-content: space-between;
-  align-items: start;
+  align-items: flex-start;
+  gap: 12px;
   margin-bottom: 17px;
+  position: static;
+  height: auto;
+  padding: 0;
+  background: transparent;
+  border-bottom: none;
+  backdrop-filter: none;
+  z-index: auto;
+}
+.card-head > div {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 .card-head h3 {
   font-size: 15px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .card-head p {
   font-size: 12px;
-  color: #8c8899;
+  color: var(--text-muted, #8c8899);
   margin-top: 4px;
+  line-height: 1.35;
 }
 .card-head a {
-  color: #6555dc;
+  color: var(--velvet, #6555dc);
   font-size: 11px;
   font-weight: 700;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-top: 2px;
 }
 .card-head a svg {
   width: 15px;
@@ -474,10 +494,16 @@ header > div {
   height: 8px;
   border-radius: 50%;
 }
-.skill-line b,
+.skill-line b {
+  display: block;
+  font-size: 12px;
+}
 .activity b {
   display: block;
   font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .skill-line small,
 .activity small {
@@ -497,6 +523,8 @@ header > div {
   align-items: center;
   padding: 11px 0;
   border-bottom: 1px solid #f0eff4;
+  min-width: 0;
+  width: 100%;
 }
 .activity:last-child {
   border: 0;
@@ -509,6 +537,11 @@ header > div {
   border-radius: 9px;
   background: #eeebfe;
   color: #6956e7;
+  flex-shrink: 0;
+}
+.activity > div {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 .activity:nth-child(3) > span {
   background: #e8f8f1;
@@ -930,6 +963,11 @@ header > div {
 }
 .insight svg {
   width: 21px;
+  flex-shrink: 0;
+}
+.insight > div {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 .insight b {
   font-size: 13px;
@@ -939,13 +977,84 @@ header > div {
   color: #7770ae;
   margin-top: 4px;
 }
+.insight button,
+.insight a.button {
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .insight button {
   border: 0;
   background: transparent;
   color: #5a4bc4;
+}
+.insight a.button {
+  background: var(--velvet, #6956e7);
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* ---------- Analytics Tooltip ---------- */
+.analytics-tooltip {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+  pointer-events: none;
+}
+.analytics-tooltip .tooltip-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-strong, var(--text)) !important;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+.analytics-tooltip .tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
+  color: var(--text) !important;
+  line-height: 1.2;
+}
+.analytics-tooltip .tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.analytics-tooltip .tooltip-category {
+  color: var(--text-muted) !important;
+}
+.analytics-tooltip .tooltip-value {
+  color: var(--text-strong, var(--text)) !important;
   font-weight: 700;
-  margin-left: auto;
+}
+
+/* Fallback overrides for standard Recharts tooltips */
+.recharts-default-tooltip {
+  background-color: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+}
+.recharts-default-tooltip .recharts-tooltip-label {
+  color: var(--text-strong, var(--text)) !important;
+  font-weight: 600 !important;
+  margin-bottom: 4px !important;
+}
+.recharts-default-tooltip .recharts-tooltip-item,
+.recharts-default-tooltip .recharts-tooltip-item-name,
+.recharts-default-tooltip .recharts-tooltip-item-value,
+.recharts-default-tooltip .recharts-tooltip-item-separator {
+  color: var(--text) !important;
 }
 .profile-layout {
   display: grid;
@@ -1369,8 +1478,9 @@ header,
 }
 
 header {
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  background: var(--surface);
   border-bottom-color: var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .content {
@@ -1925,7 +2035,7 @@ html[data-theme="dark"] .insight {
   .side {
     width: min(280px, 84vw);
     transform: translateX(-110%) !important;
-    z-index: 10;
+    z-index: 50;
     box-shadow: var(--shadow-md);
   }
 
@@ -1936,7 +2046,9 @@ html[data-theme="dark"] .insight {
   .side + main {
     margin-left: 0;
     width: 100%;
-    padding-bottom: 70px;
+    padding-bottom: 88px;
+    min-width: 0;
+    max-width: 100%;
   }
 
   header {
@@ -2169,7 +2281,7 @@ html[data-theme="dark"] .insight {
     left: 0;
     right: 0;
     height: 64px;
-    z-index: 20;
+    z-index: 35;
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -2203,7 +2315,7 @@ html[data-theme="dark"] .insight {
   .backdrop {
     position: fixed;
     inset: 0;
-    z-index: 9;
+    z-index: 40;
     border: 0;
     background: #29243b40;
   }
@@ -2276,6 +2388,41 @@ html[data-theme="dark"] .insight {
   .profile-banner .button {
     font-size: 11px;
     padding: 8px 10px;
+  }
+
+  .insight {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .insight svg {
+    flex-shrink: 0;
+  }
+
+  .insight > div {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .insight .button,
+  .insight button,
+  .insight a.button {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 10px 16px;
+    font-size: 13px;
+    margin-left: 0;
+  }
+
+  .card.chart,
+  .card.donut {
+    overflow: hidden;
   }
 }
 

@@ -9,7 +9,7 @@ export default function CardHead({ title, text, link, linkText = "View all" }) {
       link.startsWith("mailto:"));
 
   return (
-    <header className="card-head">
+    <div className="card-head">
       <div>
         <h3>{title}</h3>
         <p>{text}</p>
@@ -23,6 +23,6 @@ export default function CardHead({ title, text, link, linkText = "View all" }) {
         ) : (
           <Link to={link}>{linkText}</Link>
         ))}
-    </header>
+    </div>
   );
 }

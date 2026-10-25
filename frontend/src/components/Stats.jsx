@@ -1,33 +1,40 @@
-import { BookOpen, Clock3, Target } from "lucide-react";
+import { Award, BookOpen, Target } from "lucide-react";
 
-export default function Stats() {
+export default function Stats({
+  skillsTotal = 0,
+  skillsAvgProgress = 0,
+  goalsInProgress = 0,
+  goalsCompleted = 0,
+  learningTotal = 0,
+  learningCompleted = 0,
+}) {
   return (
     <section className="stats">
       <div>
         <span className="stat purple">
-          <BookOpen />
+          <Award />
         </span>
-        <b>4</b>
+        <b>{skillsTotal}</b>
         <p>Active skills</p>
-        <small>+1 this month</small>
+        <small>{skillsAvgProgress}% avg progress</small>
       </div>
 
       <div>
         <span className="stat orange">
           <Target />
         </span>
-        <b>2</b>
+        <b>{goalsInProgress}</b>
         <p>Goals in progress</p>
-        <small>1 completed</small>
+        <small>{goalsCompleted} completed</small>
       </div>
 
       <div>
         <span className="stat green">
-          <Clock3 />
+          <BookOpen />
         </span>
-        <b>12.5h</b>
-        <p>Learning time</p>
-        <small>+18% vs May</small>
+        <b>{learningTotal}</b>
+        <p>Learning resources</p>
+        <small>{learningCompleted} completed</small>
       </div>
     </section>
   );
