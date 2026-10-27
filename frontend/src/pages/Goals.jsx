@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import Progress from "../components/Progress";
@@ -20,7 +20,6 @@ export default function Goals() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [note, setNote] = useState("");
   const [goalList, setGoalList] = useState([]);
-  const [loading, setLoading] = useState(true);
  const [showForm, setShowForm] = useState(
   searchParams.get("add") === "true"
 );

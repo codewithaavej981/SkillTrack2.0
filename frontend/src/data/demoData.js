@@ -126,6 +126,7 @@ export const nav = [
   { to: "/analytics", label: "Analytics", icon: BarChart },
   { to: "/reports", label: "Reports", icon: FileText },
 ];
+
 export const names = {
   "/dashboard": "Dashboard",
   "/skills": "My skills",
@@ -133,5 +134,6 @@ export const names = {
   "/learning": "Learning library",
   "/analytics": "Analytics",
   "/reports": "Reports",
+  "/assistant": "AI Assistant",
   "/profile": "Profile",
 };

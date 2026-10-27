@@ -27,13 +27,19 @@ import Goals from "./pages/Goals";
 import Learning from "./pages/Learning";
 import Analytics from "./pages/Analytics";
 import Reports from "./pages/Reports";
+import AIAssistant from "./pages/AIAssistant";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Button from "./components/Button";
 import NotificationPanel from "./components/NotificationPanel";
+import BrandLogo from "./components/BrandLogo";
 import { useAuth } from "./context/AuthContext";
 import { nav, names } from "./data/demoData";
+import {
+  getNotifications,
+  subscribeToNotifications,
+} from "./services/notificationService";
 
 function Shell() {
   const [darkMode, setDarkMode] = useState(
@@ -47,19 +53,69 @@ function Shell() {
 
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [hasUnreadNotifs, setHasUnreadNotifs] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
 
+  // Subscribe to live notification counts
+  useEffect(() => {
+    const unsubscribe = subscribeToNotifications((count) => {
+      setUnreadCount(count);
+    });
+    getNotifications(user?._id).then((res) => {
+      setUnreadCount(res.unreadCount);
+    });
+    return unsubscribe;
+  }, [user?._id]);
+
+  // Dismiss drawer & notification popover on route change
+  useEffect(() => {
+    setOpen(false);
+    setNotifOpen(false);
+  }, [location.pathname]);
+
+  // Close menus on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        setNotifOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   return (
     <div className="shell">
-      <aside className={`side ${open ? "open" : ""}`}>
+      <aside className={`side ${open ? "open" : ""}`} aria-label="Navigation drawer">
         <div className="brand">
-          <span>S</span>SkillTracker 2.0{" "}
-          <Button className="close" onClick={() => setOpen(false)}>
-            <X />
-          </Button>
+          <BrandLogo size={32} />
+          <div className="brand-title-wrap">
+            <span className="brand-name">SkillTracker</span>
+            <span className="brand-version">AI 2.0</span>
+          </div>
+          <button
+            type="button"
+            className="close"
+            onClick={() => setOpen(false)}
+            aria-label="Close navigation menu"
+          >
+            <X size={18} />
+          </button>
         </div>
         <p className="nav-label">WORKSPACE</p>
         <nav>
@@ -76,13 +132,11 @@ function Shell() {
           ))}
         </nav>
         <div className="side-bottom">
-          <div className="upgrade">
-            <Sparkles />
-            <b>Unlock your momentum</b>
-            <p>Build a focused learning plan.</p>
-            <button>View plans</button>
-          </div>
-          <NavLink to="/profile" className="mini-profile">
+          <NavLink
+            to="/profile"
+            className="mini-profile"
+            onClick={() => setOpen(false)}
+          >
             <i>
               {user?.name
                 ? user.name
@@ -102,8 +156,10 @@ function Shell() {
             <ChevronDown />
           </NavLink>
           <button
+            type="button"
             className="logout"
             onClick={() => {
+              setOpen(false);
               logout();
               navigate("/login");
             }}
@@ -113,54 +169,85 @@ function Shell() {
           </button>
         </div>
       </aside>
-      {open && <button className="backdrop" onClick={() => setOpen(false)} />}
+      {open && (
+        <button
+          type="button"
+          className="backdrop"
+          onClick={() => setOpen(false)}
+          aria-label="Close navigation overlay"
+        />
+      )}
       <main>
         <header>
-          <Button className="hamburger" onClick={() => setOpen(true)}>
-            <Menu />
-          </Button>
+          <button
+            type="button"
+            className="hamburger"
+            onClick={() => setOpen((prev) => !prev)}
+            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={open}
+          >
+            {open ? <X size={18} /> : <Menu size={18} />}
+          </button>
 
           <span className="crumb">
             Workspace <em>/</em> {names[location.pathname] || "Dashboard"}
           </span>
 
-          <div>
+          <div className="header-actions">
             {/* Dark / Light toggle */}
             <Button
               className="theme-toggle"
               onClick={() => setDarkMode((prev) => !prev)}
               title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
             >
-              {darkMode ? <Sun /> : <Moon />}
+              {darkMode ? <Sun size={16} /> : <Moon size={16} />}
             </Button>
 
+            {/* AI Assistant header entry */}
+            <NavLink
+              to="/assistant"
+              className={({ isActive }) =>
+                `header-ai-btn ${isActive ? "active" : ""}`
+              }
+              title="AI Assistant"
+              aria-label="AI Assistant"
+            >
+              <Sparkles size={15} className="header-ai-icon" />
+              <span className="header-ai-label">AI Assistant</span>
+            </NavLink>
+
             <Button className="btn-add" onClick={() => navigate("/goals?add=true")}>
-              <Plus />
-              Add goal
+              <Plus size={15} />
+              <span>Add goal</span>
             </Button>
 
             <div className="notif-wrapper">
               <Button
                 className={`round notif-btn ${notifOpen ? "active" : ""}`}
                 onClick={() => setNotifOpen((prev) => !prev)}
-                title="Notifications"
-                aria-label="Notifications"
+                title={unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"}
+                aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ""}`}
                 aria-expanded={notifOpen}
                 aria-haspopup="dialog"
               >
                 <Bell size={18} />
-                {hasUnreadNotifs && <span className="notif-badge" />}
+                {unreadCount > 0 && (
+                  <span className="notif-badge" aria-hidden="true">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </Button>
 
               {notifOpen && (
                 <NotificationPanel
                   onClose={() => setNotifOpen(false)}
-                  onUnreadChange={setHasUnreadNotifs}
+                  onUnreadCountChange={setUnreadCount}
                 />
               )}
             </div>
 
-            <NavLink to="/profile" className="avatar">
+            <NavLink to="/profile" className="avatar" aria-label="Open profile">
               {user?.name
                 ? user.name
                     .split(" ")
@@ -207,6 +294,7 @@ export default function App() {
           <Route path="/learning" element={<Learning />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/assistant" element={<AIAssistant />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>

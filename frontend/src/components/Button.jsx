@@ -6,7 +6,7 @@ export default function Button({
 }) {
   return (
     <button
-      className={`btn ${variant} ${className}`.trim()}
+      className={`button btn ${variant} ${className}`.trim()}
       {...props}
     >
       {children}
