@@ -20,6 +20,7 @@ export default function Goals() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [note, setNote] = useState("");
   const [goalList, setGoalList] = useState([]);
+  const [loading, setLoading] = useState(true);
  const [showForm, setShowForm] = useState(
   searchParams.get("add") === "true"
 );
@@ -76,7 +77,7 @@ export default function Goals() {
       setEditingGoal(null);
 
       const data = await getGoals();
-      setGoalList(data || []);
+      setGoalList(Array.isArray(data) ? data : []);
     } catch (error) {
       setNote(error.response?.data?.message || "Failed to save goal.");
     }
@@ -107,7 +108,7 @@ export default function Goals() {
       try {
         setLoading(true);
         const data = await getGoals();
-        setGoalList(data || []);
+        setGoalList(Array.isArray(data) ? data : []);
       } catch (error) {
         setNote(error.response?.data?.message || "Failed to load goals.");
       } finally {
@@ -219,7 +220,22 @@ export default function Goals() {
   </div>
 </div>
 
-      <section className="goal-grid">
+      {loading && goalList.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
+          Loading your goals...
+        </div>
+      ) : goalList.length === 0 ? (
+        <div className="card-empty-state" style={{ margin: "24px 0" }}>
+          <span className="empty-icon" aria-hidden="true">
+            <Target size={24} />
+          </span>
+          <p>No active goals tracked yet</p>
+          <Button className="btn-add" onClick={openAddForm}>
+            <Plus size={16} /> Add your first goal
+          </Button>
+        </div>
+      ) : (
+        <section className="goal-grid">
         {goalList.map((g) => (
           <article
             className={`goal-card ${g.completed ? "done" : ""}`}
@@ -307,6 +323,7 @@ export default function Goals() {
           </article>
         ))}
       </section>
+      )}
     </>
   );
 }

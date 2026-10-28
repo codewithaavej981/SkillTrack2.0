@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Navigate,
   NavLink,
@@ -41,6 +41,14 @@ import {
   subscribeToNotifications,
 } from "./services/notificationService";
 
+const getUserInitials = (name) => {
+  if (!name || typeof name !== "string") return "U";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "U";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 function Shell() {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("theme") === "dark",
@@ -53,10 +61,13 @@ function Shell() {
 
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const userMenuRef = useRef(null);
 
   // Subscribe to live notification counts
   useEffect(() => {
@@ -69,25 +80,26 @@ function Shell() {
     return unsubscribe;
   }, [user?._id]);
 
-  // Dismiss drawer & notification popover on route change
+  // Dismiss drawer, notification popover & user menu on route change
   useEffect(() => {
     setOpen(false);
     setNotifOpen(false);
+    setUserMenuOpen(false);
   }, [location.pathname]);
 
-  // Close menus on Escape key
+  // Outside click handler for header user dropdown
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        setOpen(false);
-        setNotifOpen(false);
+    if (!userMenuOpen) return;
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [userMenuOpen]);
 
-  // Lock body scroll when mobile drawer is open
+  // Prevent background scrolling when mobile sidebar is open
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -98,6 +110,8 @@ function Shell() {
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  const initials = getUserInitials(user?.name);
 
   return (
     <div className="shell">
@@ -138,19 +152,20 @@ function Shell() {
             onClick={() => setOpen(false)}
           >
             <i>
-              {user?.name
-                ? user.name
-                    .split(" ")
-                    .map((word) => word[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()
-                : "U"}
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user?.name || "User"}
+                  className="avatar-img"
+                />
+              ) : (
+                initials
+              )}
             </i>
 
             <span>
               <b>{user?.name || "User"}</b>
-              <small>{user?.role || "SkillTrack member"}</small>
+              <small>{user?.role || "SkillTracker Member"}</small>
             </span>
 
             <ChevronDown />
@@ -247,16 +262,71 @@ function Shell() {
               )}
             </div>
 
-            <NavLink to="/profile" className="avatar" aria-label="Open profile">
-              {user?.name
-                ? user.name
-                    .split(" ")
-                    .map((word) => word[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()
-                : "U"}
-            </NavLink>
+            {/* Header User Menu with Avatar and Logout */}
+            <div className="user-menu-wrap" ref={userMenuRef}>
+              <button
+                type="button"
+                className="avatar header-avatar-btn"
+                onClick={() => setUserMenuOpen((prev) => !prev)}
+                aria-label="User account menu"
+                aria-expanded={userMenuOpen}
+              >
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user?.name || "User"}
+                    className="avatar-img"
+                  />
+                ) : (
+                  initials
+                )}
+              </button>
+
+              {userMenuOpen && (
+                <div className="user-menu-dropdown" role="menu">
+                  <div className="user-menu-header">
+                    <div className="user-menu-avatar">
+                      {user?.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user?.name || "User"}
+                          className="avatar-img"
+                        />
+                      ) : (
+                        initials
+                      )}
+                    </div>
+                    <div className="user-menu-info">
+                      <b>{user?.name || "User"}</b>
+                      <small>{user?.email || "Authenticated"}</small>
+                    </div>
+                  </div>
+                  <div className="user-menu-divider" />
+                  <NavLink
+                    to="/profile"
+                    className="user-menu-item"
+                    onClick={() => setUserMenuOpen(false)}
+                    role="menuitem"
+                  >
+                    <UserRound size={15} />
+                    <span>Your profile</span>
+                  </NavLink>
+                  <button
+                    type="button"
+                    className="user-menu-item logout-item"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      logout();
+                      navigate("/login");
+                    }}
+                    role="menuitem"
+                  >
+                    <LogOut size={15} />
+                    <span>Log out</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
         <div className="content">

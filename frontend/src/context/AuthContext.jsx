@@ -22,6 +22,7 @@ export function AuthProvider({ children }) {
       })
       .catch(() => {
         localStorage.removeItem("token");
+        localStorage.removeItem("profilePhoto");
         setUser(null);
       })
       .finally(() => {
@@ -29,17 +30,16 @@ export function AuthProvider({ children }) {
       });
   }, []);
 
-
   const refreshUser = async () => {
-  try {
-    const response = await api.get("/auth/me");
-    setUser(response.data.user);
-    return response.data.user;
-  } catch (error) {
-    console.error("Failed to refresh user:", error);
-    return null;
-  }
-};
+    try {
+      const response = await api.get("/auth/me");
+      setUser(response.data.user);
+      return response.data.user;
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+      return null;
+    }
+  };
 
   const login = async (email, password) => {
     const response = await api.post("/auth/login", {
@@ -68,6 +68,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("profilePhoto");
     setUser(null);
   };
 
@@ -75,6 +76,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         loading,
         login,
         register,

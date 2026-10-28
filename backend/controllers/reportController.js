@@ -147,7 +147,7 @@ exports.getReportData = async (req, res, next) => {
         user: {
           name: req.user.name || 'Member',
           email: req.user.email || '',
-          role: req.user.role || 'SkillTrack Member',
+          role: req.user.role || 'SkillTracker Member',
         },
         period: {
           startDate: startDate || null,

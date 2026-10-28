@@ -144,7 +144,7 @@ export default function Auth({ register }) {
               </p>
 
               <h2>
-                {register ? "Create your account" : "Sign in to SkillTrack"}
+                {register ? "Create your account" : "Sign in to SkillTracker"}
               </h2>
 
               <p className="auth-subtitle">
@@ -220,7 +220,7 @@ export default function Auth({ register }) {
             </button>
 
             <small className="auth-switch">
-              {register ? "Already have an account?" : "New to SkillTrack?"}{" "}
+              {register ? "Already have an account?" : "New to SkillTracker?"}{" "}
               <Link to={register ? "/login" : "/register"}>
                 {register ? "Sign in" : "Create an account"}
               </Link>
