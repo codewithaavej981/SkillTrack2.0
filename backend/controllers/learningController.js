@@ -18,11 +18,38 @@ const createLearningResource = async (req, res) => {
   try {
     const { title, source, category, url, progress, completed } = req.body;
 
+    if (!title || typeof title !== "string" || !title.trim()) {
+      return res.status(400).json({ message: "Title is required" });
+    }
+
+    const cleanTitle = title.trim();
+    const cleanUrl = url && typeof url === "string" ? url.trim() : "";
+
+    // Duplicate prevention for the authenticated user
+    const escapedTitle = cleanTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const orConditions = [{ title: { $regex: new RegExp(`^${escapedTitle}$`, "i") } }];
+    if (cleanUrl) {
+      orConditions.push({ url: cleanUrl });
+    }
+
+    const existing = await LearningResource.findOne({
+      user: req.user._id,
+      $or: orConditions,
+    });
+
+    if (existing) {
+      return res.status(200).json({
+        ...existing.toObject(),
+        alreadyInLibrary: true,
+        message: "Resource already exists in your Learning Library",
+      });
+    }
+
     const resource = await LearningResource.create({
-      title,
-      source,
-      category,
-      url: url || "",
+      title: cleanTitle,
+      source: source && typeof source === "string" ? source.trim() : "Curated Resource",
+      category: category || "Development",
+      url: cleanUrl,
       progress:
         progress !== undefined
           ? Math.min(100, Math.max(0, Number(progress) || 0))

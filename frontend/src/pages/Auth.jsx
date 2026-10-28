@@ -10,18 +10,34 @@ import {
 
 import { useAuth } from "../context/AuthContext";
 import Notice from "../components/Notice";
+import BrandLogo from "../components/BrandLogo";
 
-function Field({ icon, title, placeholder, type, value, onChange }) {
+function Field({
+  id,
+  name,
+  icon,
+  title,
+  placeholder,
+  type = "text",
+  value,
+  onChange,
+  autoComplete,
+  required,
+}) {
   return (
-    <label className="field">
-      {title}
-      <span>
-        {icon}
+    <label htmlFor={id} className="field">
+      <span className="field-label">{title}</span>
+      <span className="field-input-wrap">
+        <span className="field-icon">{icon}</span>
         <input
+          id={id}
+          name={name}
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          autoComplete={autoComplete}
+          required={required}
         />
       </span>
     </label>
@@ -68,10 +84,14 @@ export default function Auth({ register }) {
   };
 
   return (
-    <main className="auth">
-      <section>
+    <div className="auth">
+      <section className="auth-hero">
         <Link to="/dashboard" className="brand">
-          <span>S</span>SkillTrack
+          <BrandLogo size={36} />
+          <div className="brand-title-wrap">
+            <span className="brand-name">SkillTracker</span>
+            <span className="brand-version">AI 2.0</span>
+          </div>
         </Link>
 
         <div>
@@ -105,72 +125,109 @@ export default function Auth({ register }) {
         </ul>
       </section>
 
-      <form onSubmit={handleSubmit}>
-        <p className="eyebrow">
-          WELCOME {register ? "ABOARD" : "BACK"}
-        </p>
+      <div className="auth-main">
+        <div className="auth-card-wrap">
+          <div className="auth-mobile-brand">
+            <Link to="/dashboard" className="brand">
+              <BrandLogo size={34} />
+              <div className="brand-title-wrap">
+                <span className="brand-name">SkillTracker</span>
+                <span className="brand-version">AI 2.0</span>
+              </div>
+            </Link>
+          </div>
 
-        <h2>
-          {register ? "Create your account" : "Sign in to SkillTrack"}
-        </h2>
+          <form onSubmit={handleSubmit} className="auth-form" noValidate={false}>
+            <div className="auth-form-head">
+              <p className="eyebrow">
+                WELCOME {register ? "ABOARD" : "BACK"}
+              </p>
 
-        <p>
-          {register
-            ? "Start making your growth visible today."
-            : "Pick up right where you left off."}
-        </p>
+              <h2>
+                {register ? "Create your account" : "Sign in to SkillTracker"}
+              </h2>
 
-        {error && <Notice message={error} />}
+              <p className="auth-subtitle">
+                {register
+                  ? "Start making your growth visible today."
+                  : "Pick up right where you left off."}
+              </p>
+            </div>
 
-        {register && (
-          <Field
-            icon={<UserRound />}
-            title="Full name"
-            placeholder="Your name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
-        )}
+            {error && <Notice message={error} />}
 
-        <Field
-          icon={<Mail />}
-          title="Email address"
-          placeholder="you@example.com"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
+            <div className="auth-fields">
+              {register && (
+                <Field
+                  id="auth-name"
+                  name="name"
+                  icon={<UserRound />}
+                  title="Full name"
+                  placeholder="Your full name"
+                  type="text"
+                  value={name}
+                  autoComplete="name"
+                  required
+                  onChange={(event) => setName(event.target.value)}
+                />
+              )}
 
-        <Field
-          icon={<LockKeyhole />}
-          title="Password"
-          placeholder="••••••••"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
+              <Field
+                id="auth-email"
+                name="email"
+                icon={<Mail />}
+                title="Email address"
+                placeholder="you@example.com"
+                type="email"
+                value={email}
+                autoComplete="email"
+                required
+                onChange={(event) => setEmail(event.target.value)}
+              />
 
-        <button
-          type="submit"
-          className="button auth-button"
-          disabled={loading}
-        >
-          {loading
-            ? "Please wait..."
-            : register
-              ? "Create account"
-              : "Sign in"}
+              <Field
+                id="auth-password"
+                name="password"
+                icon={<LockKeyhole />}
+                title="Password"
+                placeholder="••••••••"
+                type="password"
+                value={password}
+                autoComplete={register ? "new-password" : "current-password"}
+                required
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            </div>
 
-          {!loading && <ChevronRight />}
-        </button>
+            <button
+              type="submit"
+              className="button auth-button"
+              disabled={loading}
+            >
+              {loading ? (
+                "Please wait..."
+              ) : register ? (
+                <>
+                  <span>Create account</span>
+                  <ChevronRight size={18} />
+                </>
+              ) : (
+                <>
+                  <span>Sign in</span>
+                  <ChevronRight size={18} />
+                </>
+              )}
+            </button>
 
-        <small>
-          {register ? "Already have an account?" : "New to SkillTrack?"}{" "}
-          <Link to={register ? "/login" : "/register"}>
-            {register ? "Sign in" : "Create an account"}
-          </Link>
-        </small>
-      </form>
-    </main>
+            <small className="auth-switch">
+              {register ? "Already have an account?" : "New to SkillTracker?"}{" "}
+              <Link to={register ? "/login" : "/register"}>
+                {register ? "Sign in" : "Create an account"}
+              </Link>
+            </small>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }

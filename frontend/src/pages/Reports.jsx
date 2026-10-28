@@ -209,7 +209,7 @@ export default function Reports() {
 
       const dateStr = new Date().toISOString().slice(0, 10);
       const periodSlug = sanitizeForFilename(report.period?.label || preset);
-      const filename = `SkillTrack_${reportType.toUpperCase()}_Report_${periodSlug}_${dateStr}.csv`;
+      const filename = `SkillTracker_${reportType.toUpperCase()}_Report_${periodSlug}_${dateStr}.csv`;
 
       const escapeCSV = (value) => {
         if (value === null || value === undefined) return '""';
@@ -556,7 +556,7 @@ export default function Reports() {
                 <div className="report-doc-brand">
                   <span className="brand-logo-mark">S</span>
                   <div className="brand-info">
-                    <strong className="brand-name">SkillTrack 2.0</strong>
+                    <strong className="brand-name">SkillTracker 2.0</strong>
                     <span className="brand-sub">Skill Intelligence &amp; Analytics</span>
                   </div>
                 </div>
@@ -621,7 +621,7 @@ export default function Reports() {
 
                 <div className="meta-cell">
                   <span className="meta-label">Workspace Role</span>
-                  <strong className="meta-val">{report.user?.role || user?.role || "SkillTrack Member"}</strong>
+                  <strong className="meta-val">{report.user?.role || user?.role || "SkillTracker Member"}</strong>
                   <span className="meta-sub">Authenticated Member</span>
                 </div>
               </div>
@@ -1044,7 +1044,7 @@ export default function Reports() {
               <div className="report-footer-brand">
                 <div className="report-footer-logo-row">
                   <span className="footer-mini-mark">S</span>
-                  <span className="footer-title">SkillTrack 2.0 &bull; Verified Workspace Report</span>
+                  <span className="footer-title">SkillTracker 2.0 &bull; Verified Workspace Report</span>
                 </div>
                 <span className="footer-sub">
                   Generated for <b>{report.user?.name || user?.name || "Member"}</b> ({report.user?.email || user?.email}) &bull; {formatDate(report.generatedAt)}
